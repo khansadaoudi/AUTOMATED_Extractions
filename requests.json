@@ -1,0 +1,33 @@
+{   
+    "patterns": [
+        {
+            "request_type": "MAT-PRO-REF PROpreV",
+            "request_pattern": "pattern { X -[root]-> Y;\nY -[nsubj]-> Z;\nZ[upos=PRON];\nY>>Z}\nwithout{Z[lemma=\"chacun\"|\"nul\"|\"aucun\"|\"tout\"|\"autre\"]}\nwithout{Z[prpos=Ps]}\nwithout{Z-[acl:relcl|nmod]->R}"
+        },
+        {
+            "request_type": "MAT-PRO-REF PROpostV",
+            "request_pattern": "pattern { X -[root]-> Y;\nY -[nsubj]-> Z;\nZ[upos=PRON];Y<<Z}\nwithout{Z[lemma=\"chacun\"|\"nu\"|\"aucun\"|\"tout\"|\"autre\"]}\nwithout{Z[prpos=Ps]}\nwithout{Z-[acl:relcl|nmod]->R}"
+        },
+        {
+            "request_type": "MAT-PRO-IMP PROpreV",
+            "request_pattern": "pattern { X -[root]-> Y;\nY -[expl]-> Z;\nZ[lemma=\"il\"];\nY>>Z}"
+        },
+        {
+            "request_type": "MAT-PRO-IMP PROostV",
+            "request_pattern": "pattern { X -[root]-> Y;\nY -[expl]-> Z;\nZ[lemma=\"il\"];\nY<<Z}"
+        },
+        {
+            "request_type": "MAT-pro-null",
+            "request_pattern": "pattern { X -[root]-> Y}\nwithout{Y -[expl]-> Z;\nZ[lemma=\"il\"]}\nwithout{Y -[nsubj]-> S}"
+        },
+        {
+            "request_type": "MAT-con-null",
+            "request_pattern": "pattern { X -[root]-> Y;\nY -[conj]-> C}"
+            
+        },
+        {
+            "request_type": "MAT-con-null_2",
+            "request_pattern": "pattern { X -[root]-> Y;\nY -[conj]-> C;\nC -[conj]-> CC}"
+        }
+    ] 
+}

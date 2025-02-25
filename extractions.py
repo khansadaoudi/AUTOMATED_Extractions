@@ -50,12 +50,22 @@ def get_pivot(sentence_json, root_position):
     return pivot["FORM"], pivot["ID"]
 
 
-def get_sentences_part(sentence_json, pivot_position):
+def get_sentences_part(sentence_json, pivot_position, subject_position):
 
     first_part_sentence = list(sentence_json['treeJson']['nodesJson'].values())[:pivot_position-1]
     second_part_sentence = list(sentence_json['treeJson']['nodesJson'].values())[pivot_position:]
-    first_part = ' ' .join([token['FORM'] for token in first_part_sentence])
-    second_part = ' '.join([token['FORM'] for token in second_part_sentence])
+    if subject_position == 0:
+        first_part = ' ' .join([token['FORM'] for token in first_part_sentence])
+        second_part = ' '.join([token['FORM'] for token in second_part_sentence])
+
+    elif pivot_position > subject_position:
+        first_part = ' ' .join([token['FORM'] if int(token['ID']) != subject_position else f"**{token['FORM']}**" for token in first_part_sentence])
+        second_part = ' '.join([token['FORM'] for token in second_part_sentence])
+
+    elif pivot_position < subject_position:
+        first_part = ' ' .join([token['FORM'] for token in first_part_sentence])
+        second_part = ' '.join([token['FORM'] if int(token['ID']) != subject_position else f"**{token['FORM']}**" for token in second_part_sentence])
+    
     return first_part, second_part
 
 def generate_excel_file(results, pattern_name, file_path):
@@ -65,14 +75,12 @@ def generate_excel_file(results, pattern_name, file_path):
     except FileNotFoundError:
         writer = pd.ExcelWriter(file_path, engine="openpyxl", mode="w")
 
-
     df.to_excel(writer, sheet_name=pattern_name, index=False)
-
     writer.close()
-    
+
 if __name__ == "__main__":
 
-    grewpy.set_config("sud")
+    grewpy.set_config("ud")
     requests_file = open("requests.json")
     requests = json.load(requests_file)['patterns']
     dir_path = 'Files/'
@@ -89,7 +97,6 @@ if __name__ == "__main__":
                     for result in results:
                         sentence_json = [sentence_json for sentence_json in sentences_json if sentence_json['metaJson']['sent_id'] == result['Sent-ref']][0]
                         pivot_form , pivot_id = get_pivot(sentence_json, result['root-position']) 
-                        sent_first_part, sent_second_part = get_sentences_part(sentence_json, int(pivot_id))
                         if result['subject-position'] == '':
                             subj_form, subj_id = get_subj(sentence_json, result['root-position'])
                             if subj_form and subj_id:
@@ -98,10 +105,13 @@ if __name__ == "__main__":
                             else: 
                                 subject_position = ''
                                 subject = ''
+                                subj_id = '0'
                         else: 
+                            subj_id = result['subject-position']
                             subject= sentence_json['treeJson']['nodesJson'][str(result['subject-position'])]['FORM']
-                            subject_position = 'PROpreV' if int(result['subject-position']) < int(result['root-position']) else 'PROpostV'
+                            subject_position = 'PROpreV' if int(subj_id) < int(result['root-position']) else 'PROpostV'
 
+                        sent_first_part, sent_second_part = get_sentences_part(sentence_json, int(pivot_id), int(subj_id))
                         
                         entry = {
                             'Sent-Ref': result['Sent-ref'],
@@ -114,15 +124,6 @@ if __name__ == "__main__":
                         data.append(entry)
 
                 excel_file_name = conll_file.split('.conllu')[0] + '.xlsx'
-                generate_excel_file(data, request['request_type'], excel_file_name )
+                generate_excel_file(data, request['request_type'], excel_file_name)
 
                 
-               
-
-
-
-            
-
-
-
-    

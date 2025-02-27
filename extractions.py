@@ -44,7 +44,7 @@ def get_pivot(sentence_json, root_position):
     pivot_rel = ["aux", "cop", "aux:pass"]
     
     for token in sentence_json['treeJson']['nodesJson'].values():
-        if str(token['HEAD']) == pivot["ID"] and token['DEPREL'] in pivot_rel and token["UPOS"] == 'AUX':
+        if str(token['HEAD']) == pivot["ID"] and token['DEPREL'] in pivot_rel and token["UPOS"] == 'AUX' and pivot["UPOS"] != 'AUX':
             return token["FORM"], token["ID"]
     
     return pivot["FORM"], pivot["ID"]
@@ -81,7 +81,7 @@ def generate_excel_file(results, pattern_name, file_path):
 if __name__ == "__main__":
 
     grewpy.set_config("ud")
-    requests_file = open("requests.json")
+    requests_file = open("request_sub.json")
     requests = json.load(requests_file)['patterns']
     dir_path = 'Files/'
 
@@ -115,15 +115,18 @@ if __name__ == "__main__":
                         
                         entry = {
                             'Sent-Ref': result['Sent-ref'],
+                            'Clause': 'SUB',
                             'Subject Position': subject_position,
                             'subject': subject,
                             'Left Context': sent_first_part,
                             'Pivot': pivot_form,
-                            'Right Context': sent_second_part
+                            'Right Context': sent_second_part, 
+                            'Type-SUB': request['type_sub']
                         }
                         data.append(entry)
 
-                excel_file_name = conll_file.split('.conllu')[0] + '.xlsx'
-                generate_excel_file(data, request['request_type'], excel_file_name)
+                excel_file_name = f"sub_extractions/{conll_file.split('.conllu')[0]}.xlsx"
+                sheet_name = f"{request['request_type']}_{request['subject_position']}_{request['type_sub']}"
+                generate_excel_file(data, sheet_name, excel_file_name)
 
                 

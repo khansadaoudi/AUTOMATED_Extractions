@@ -1,0 +1,65 @@
+{   
+    "patterns": [
+        {
+            "request_type": "SUB-REF",
+            "subject_position": "PROpreV",
+            "type_sub": "ccomp",
+            "request_pattern": "pattern { X -[advcl]-> Y;\nY-[nsubj]->Z;\nZ[upos=PRON]; Z<<Y}\nwithout{Z[lemma=\"chacun\"|\"nul\"|\"aucun\"|\"tout\"|\"autre\"]} without{Z-[acl:relcl|nmod]->R}\nwithout{Z[prpos=Ps]}"
+        },
+        {
+            "request_type": "SUB-REF",
+            "subject_position": "PROpreV",
+            "type_sub": "advcl",
+            "request_pattern": "pattern { X -[advcl]-> Y;\nY-[nsubj]->Z;\nZ[upos=PRON];\nZ<<Y;\nY -[mark]-> M;\nM[upos=SCONJ]}\nwithout{Z[lemma=\"chacun\"|\"nul\"|\"aucun\"|\"tout\"|\"autre\"]}\nwithout{Z-[acl:relcl|nmod]->R} without{Z[prpos=Ps]}"
+        },
+        {
+            "request_type": "SUB-REF",
+            "subject_position": "PROpostV",
+            "type_sub": "ccomp",
+            "request_pattern": "pattern { X -[advcl]-> Y;\nY-[nsubj]->Z;\nZ[upos=PRON]; Z>>Y}\nwithout{Z[lemma=\"chacun\"|\"nul\"|\"aucun\"|\"tout\"|\"autre\"]} \nwithout{Z-[acl:relcl|nmod]->R}\nwithout{Z[prpos=Ps]}\npattern { X -[advcl]-> Y;\nY-[nsubj]->Z;\nZ[upos=PRON];\nZ<<Y}"
+        },
+        {
+            "request_type": "SUB-REF",
+            "subject_position": "PROpostV",
+            "type_sub": "advcl",
+            "request_pattern": "pattern { X -[advcl]-> Y;\nY-[nsubj]->Z;\nZ[upos=PRON];\nZ>>Y;\nY -[mark]-> M;\nM[upos=SCONJ]}\nwithout{Z[lemma=\"chacun\"|\"nul\"|\"aucun\"|\"tout\"|\"autre\"]}\nwithout{Z-[acl:relcl|nmod]->R} without{Z[prpos=Ps]}"
+        },
+        {
+            "request_type": "SUB-IMP",
+            "subject_position": "PROpreV",
+            "type_sub": "ccomp",
+            "request_pattern": "pattern { X -[ccomp]-> Y;\nY-[expl]->Z;\nZ[upos=PRON];\nZ[lemma=\"il\"];\nZ<<Y}"
+        },
+        {
+            "request_type": "SUB-IMP",
+            "subject_position": "PROpreV",
+            "type_sub": "advcl",
+            "request_pattern": "pattern { X -[advcl]-> Y;\nY-[expl]->Z;\nZ[upos=PRON];\nZ[lemma=\"il\"];\nZ<<Y}"
+        },
+        {
+            "request_type": "SUB-IMP",
+            "subject_position": "PROpostV",
+            "type_sub": "ccomp",
+            "request_pattern": "pattern { X -[ccomp]-> Y;\nY-[expl]->Z;\nZ[upos=PRON];\nZ[lemma=\"il\"]; Z>>Y}"
+        },
+        {
+            "request_type": "SUB-IMP",
+            "subject_position": "PROpostV",
+            "type_sub": "advcl",
+            "request_pattern": "pattern { X -[advcl]-> Y;\nY-[expl]->Z;\nZ[upos=PRON];\nZ[lemma=\"il\"];\nZ>>Y}"
+        },
+        {
+            "request_type": "SUB-null",
+            "subject_position": "PROpreV",
+            "type_sub": "ccomp",
+            "request_pattern": "pattern { X -[ccomp]-> Y} \nwithout{Y -[nsubj]-> Z}\nwithout{Y -[expl]-> E;\nE[lemma=\"il\"]}"
+        },
+        {
+            "request_type": "SUB-null",
+            "subject_position": "PROpreV",
+            "type_sub": "ccomp",
+            "request_pattern": "pattern { X -[ccomp]-> Y;\nY -[mark]-> M;\nM[upos=SCONJ]} \nwithout{Y -[nsubj]-> Z}\nwithout{Y -[expl]-> E;\nE[lemma=\"il\"]}"
+        }
+        
+    ]
+}

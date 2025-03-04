@@ -16,17 +16,16 @@ def load_corpus_json(file_path):
 
 def extract_structures(corpus, request_pattern):
    
-    results = []
+    results = {}
     request = Request(request_pattern)
     occurences = corpus.search(request)
 
     for occurence in occurences: 
-        result = {
-            'Sent-ref': occurence['sent_id'], 
-            'root-position': occurence['matching']['nodes']['Y'],
-            'subject-position': occurence['matching']['nodes']['Z'] if 'Z' in occurence['matching']['nodes'].keys() else ''
-        }
-        results.append(result)
+        if occurence['sent_id'] not in results.keys():
+            results[occurence['sent_id']] = {
+                'root-position': occurence['matching']['nodes']['Y'],
+                'subject-position': occurence['matching']['nodes']['Z'] if 'Z' in occurence['matching']['nodes'].keys() else ''
+            }
     return results
 
    
@@ -94,8 +93,8 @@ if __name__ == "__main__":
                 results = extract_structures(corpus, request['request_pattern'])
                 data = []
                 if results: 
-                    for result in results:
-                        sentence_json = [sentence_json for sentence_json in sentences_json if sentence_json['metaJson']['sent_id'] == result['Sent-ref']][0]
+                    for sent_id, result in results.items():
+                        sentence_json = [sentence_json for sentence_json in sentences_json if sentence_json['metaJson']['sent_id'] == sent_id][0]
                         pivot_form , pivot_id = get_pivot(sentence_json, result['root-position']) 
                         if result['subject-position'] == '':
                             subj_form, subj_id = get_subj(sentence_json, result['root-position'])
@@ -114,7 +113,7 @@ if __name__ == "__main__":
                         sent_first_part, sent_second_part = get_sentences_part(sentence_json, int(pivot_id), int(subj_id))
                         
                         entry = {
-                            'Sent-Ref': result['Sent-ref'],
+                            'Sent-Ref': sent_id,
                             'Clause': 'SUB',
                             'Subject Position': subject_position,
                             'subject': subject,

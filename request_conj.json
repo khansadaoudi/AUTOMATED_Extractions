@@ -1,0 +1,37 @@
+{
+    "patterns": [
+        {
+            "request_type": "3 conjuncts, verbs",
+            "request_pattern": "pattern { X -[root]-> R;R[upos=VERB];R-[conj]->CONJ1;CONJ1[upos=VERB];R-[conj]->CONJ2;CONJ2[upos=VERB];R-[conj]->CONJ3;CONJ3[upos=VERB];}without {R -[aux|aux:pass|cop]-> AUX1}"
+        }, 
+        {
+            "request_type": "2 conjuncts, verbs",
+            "request_pattern": "pattern { X -[root]-> R;R[upos=VERB];R-[conj]->CONJ1;CONJ1[upos=VERB];R-[conj]->CONJ2;CONJ2[upos=VERB];}without {R -[aux|aux:pass|cop]-> AUX;R-[conj]->CONJ3;CONJ3[upos=VERB]}"
+        }, 
+        {
+            "request_type": "1 conjunct, verbs",
+            "request_pattern": "pattern { X -[root]-> R;R[upos=VERB];R-[conj]->CONJ1;CONJ1[upos=VERB]}without {R -[aux|aux:pass|cop]-> AUX;R-[conj]->CONJ3;CONJ3[upos=VERB];R-[conj]->CONJ2;CONJ2[upos=VERB];}"
+        }, 
+        {
+            "request_type": "2 conjuncts, verb and aux",
+            "request_pattern": "pattern { X -[root]-> R;R[upos=VERB];R-[conj]->CONJ1;CONJ1[upos=VERB];R-[conj]->CONJ2;CONJ2 -[aux|aux:pass|cop]-> AUX2}without {R -[aux|aux:pass|cop]-> AUX}"
+        }, 
+        {
+            "request_type": "1 conjunct, aux",
+            "request_pattern": "pattern { X -[root]-> R;R[upos=VERB];R-[conj]->CONJ1;CONJ1 -[aux|aux:pass|cop]-> AUX1}without {R -[aux|aux:pass|cop]-> AUX}"
+        }, 
+        {
+            "request_type": "1 conjunct, aux + aux",
+            "request_pattern": "pattern { X -[root]-> R;R-[aux|aux:pass|cop]->AUX;R -[conj]->CONJ1;CONJ1-[aux|aux:pass|cop]->AUX1}"
+        }, 
+        {
+            "request_type": "2 conjuncts, aux+aux+aux", 
+            "request_pattern": "pattern { X -[root]-> R;R-[aux|aux:pass|cop]->AUX;R -[conj]->CONJ1;CONJ1-[aux|aux:pass|cop]->AUX1;R -[conj]->CONJ2;CONJ2-[aux|aux:pass|cop]->AUX2}"
+        }, 
+        {
+            "request_type": "3 conjuncts, aux+aux+aux+aux", 
+            "request_pattern": "pattern { X -[root]-> R;R-[aux|aux:pass|cop]->AUX;R -[conj]->CONJ1;CONJ1-[aux|aux:pass|cop]->AUX1;R -[conj]->CONJ2;CONJ2-[aux|aux:pass|cop]->AUX2;R -[conj]->CONJ3;CONJ2-[aux|aux:pass|cop]->AUX3}"
+        }
+
+    ]
+}

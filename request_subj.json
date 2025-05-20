@@ -1,0 +1,20 @@
+{
+    "patterns": [
+        {
+            "pattern_to_check": "Que énonciatif",
+            "pattern": "pattern { X -[root]-> Y;\nY -[expl]->A;\nA[upos=\"PART\"]}"
+        }, 
+        {
+            "pattern_to_check": "Subject with nmod",
+            "pattern": "pattern { s-[nmod]-> s}" 
+        },
+        {
+            "pattern_to_check": "Subject with DET",
+            "pattern": "pattern { X -[nsubj]-> Y;\nY -[det]->A;\nA[upos=\"DET\"];}"
+        }, 
+        {
+            "pattern_to_check": "Subject with relative", 
+            "pattern": "pattern { s-[acl:relc]-> s}"
+        }
+    ]
+}

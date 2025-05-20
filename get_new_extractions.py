@@ -7,11 +7,57 @@ import grewpy
 from conllup.conllup import sentenceJsonToConll
 from grewpy import Request, Corpus
 
+def load_sentences_json(file_path): 
+    mapped_sentences = {}
+    sentences_json = extractions.load_corpus_json(file_path)
+    for sentence_json in sentences_json:
+        sent_id = sentence_json['metaJson']['sent_id']
+        mapped_sentences[sent_id] = sentence_json
 
-def get_que_enonciatif(sentence_json):
+    return mapped_sentences
+   
+def get_extraction(request, corpus):
 
+    results = {}
+
+    pattern = Request(request["request_pattern"])
+
+    occurences = corpus.search(pattern)
+    
+    for occurence in occurences:
+        if occurence['sent_id'] not in results.keys():
+            results[occurence['sent_id']] = {
+                'root-position': occurence['matching']['nodes'][request['pivot']],
+            }
+    
+    return results
+
+def get_subj(sentence_json, root_position):
+
+    pattern = "pattern { X -[root]-> Y;\nY -[nsubj|expl]-> Z}"
+
+    pattern = Request(pattern)
+    sentence_conll = sentenceJsonToConll(sentence_json)
+    corpus = Corpus(sentence_conll)
+    occurences = corpus.search(pattern)
+
+    if occurences:
+        node_id = occurences[0]['matching']['nodes']['Z']
+        token = sentence_json['treeJson']['nodesJson'][node_id]
+        subj_info = {
+            'subj_position': token['ID'],
+            'form': token['FORM'],
+            'position': 'preV' if token['ID'] < root_position else 'postV',
+            'upos': token['UPOS'],
+        }
+        return subj_info
+    
+    return { 'subj_position': 'Null' }
+            
+def check_que_enonciatif(sentence_json):
+    
+    sentence_conll = sentenceJsonToConll(sentence_json)
     request = "pattern { X -[root]-> Y;\nY -[expl]->A;\nA[upos=\"PART\"]}"
-    sentence_conll = sentenceJsonToConll(sentence_json)
 
     corpus = Corpus(sentence_conll)
     request = Request(request)
@@ -19,41 +65,24 @@ def get_que_enonciatif(sentence_json):
 
     return 'Y' if len(occurences) > 0 else 'N'
 
+def get_dep(sentence_json, gov):
+    for token in sentence_json['treeJson']['nodesJson'].values():
+        if str(token['HEAD']) == str(gov):
+            return token
+    return None
 
-def get_subj_det(sentence_json):
-
-    request = "pattern { X -[nsubj]-> Y;\nY -[det]->A;\nA[upos=\"DET\"];}"
-    sentence_conll = sentenceJsonToConll(sentence_json)
-
-    conrpus = Corpus(sentence_conll)
-    request = Request(request)
-    occurences = conrpus.search(request)
-
-    return 'Y' if len(occurences) > 0 else 'N'
-
-def get_subj_nmod(sentence_json):
-
-    request = "pattern { s-[nmod]-> s}"
-    sentence_conll = sentenceJsonToConll(sentence_json)
-
-    corpus = Corpus(sentence_conll)
-    request = Request(request)
-    occurences = corpus.search(request)
-
-    return 'Y' if len(occurences) > 0 else 'N'
-
-
-def get_subj_rel(sentence_json):
-
-    request = "pattern { s-[acl:relc]-> s}"
-    sentence_conll = sentenceJsonToConll(sentence_json)
-
-    corpus = Corpus(sentence_conll)
-    request = Request(request)
-    occurences = corpus.search(request)
-
-    return 'Y' if len(occurences) > 0 else 'N'
-
+def check_subj(sentence_json, subject_position, deprel):
+    for token in sentence_json['treeJson']['nodesJson'].values():
+        if str(token['ID']) == str(subject_position):
+            if deprel == 'det':
+                dep = get_dep(sentence_json, subject_position)
+                if dep is None:
+                    return 'N'
+                else:
+                    return 'Y' if dep['UPOS'] == 'DET' else 'N'
+            else:
+                return 'Y' if token['DEPREL'] == deprel else 'N'
+                
 
 
 if __name__ == "__main__":
@@ -61,63 +90,59 @@ if __name__ == "__main__":
     grewpy.set_config("ud")
     requests_file = open("new_requests.json")
     requests = json.load(requests_file)['patterns'] 
+
+    requests_file = open("request_subj.json")
+    requests_subj = json.load(requests_file)['patterns']
+
     dir_path = 'new_files/'
-
     for conll_file in os.listdir("new_files"):
-
         if ".conllu" in conll_file:
 
             corpus = extractions.load_corpus(os.path.join(dir_path, conll_file))
-            sentences_json = extractions.load_corpus_json(os.path.join(dir_path, conll_file))
+            sentences_json = load_sentences_json(os.path.join(dir_path, conll_file))
 
+            data = []
             for request in requests:
-                results = extractions.extract_structures(corpus, request['request_pattern'])
-                data = []
-                if results: 
-                    for sent_id, result in results.items():
-                        sentence_json = [sentence_json for sentence_json in sentences_json if sentence_json['metaJson']['sent_id'] == sent_id][0]
-                        pivot_form , pivot_id = extractions.get_pivot(sentence_json, result['root-position']) 
-                        if result['subject-position'] == '':
-                            subj_form, subj_id = extractions.get_subj(sentence_json, result['root-position'])
-                            if subj_form and subj_id:
-                                subject_position = 'PROpreV' if int(subj_id) < int(pivot_id) else 'PROpostV'
-                                subject = subj_form
-                            else: 
-                                subject_position = ''
-                                subject = ''
-                                subj_id = '0'
-                        else: 
-                            subj_id = result['subject-position']
-                            subject= sentence_json['treeJson']['nodesJson'][str(result['subject-position'])]['FORM']
-                            subject_upos = sentence_json['treeJson']['nodesJson'][str(result['subject-position'])]['UPOS']
-                            subject_position = 'PROpreV' if int(subj_id) < int(result['root-position']) else 'PROpostV'
+                results = get_extraction(request, corpus)
 
-                        sent_first_part, sent_second_part = extractions.get_sentences_part(sentence_json, int(pivot_id), int(subj_id))
+                if results:
+                    for sent_id, root_position in results.items():
+                        sentence_json = sentences_json[sent_id]
+                        subj_info = get_subj(sentence_json, root_position['root-position'])
+                        pivot = sentence_json['treeJson']['nodesJson'][root_position['root-position']]
 
+                        if subj_info['subj_position'] != 'Null':
+                            subj_info['Que énnociatif'] = check_que_enonciatif(sentence_json)
+                            first_part, second_part = extractions.get_sentences_part(sentence_json, int(root_position['root-position']), int(subj_info['subj_position']))
+
+                        else:
+                            first_part, second_part = extractions.get_sentences_part(sentence_json, int(root_position['root-position']), 0)
+                        
                         entry = {
                             'Sent-ID': sent_id,
                             'Clause': 'MAT',
-                            'Subject Position': subject_position,
-                            'Subject with nmod': get_subj_nmod(sentence_json),
-                            'Subject with rel': get_subj_rel(sentence_json),
-                            'subject Pos': subject_upos,
-                            'Subject with det': get_subj_det(sentence_json),
-                            'Que enonciatif': get_que_enonciatif(sentence_json),
-                            'Left context': sent_first_part,
-                            'Pivot': pivot_form,
-                            'Right context': sent_second_part,
-
+                            'Subject position': subj_info['position'] if subj_info['subj_position'] != 'Null' else 'Null',
+                            'Subject with nmod': check_subj(sentence_json, subj_info['subj_position'], 'nmod') if subj_info['subj_position'] != 'Null' else 'Null',
+                            'Subject with relative': check_subj(sentence_json, subj_info['subj_position'], 'acl:relc') if subj_info['subj_position'] != 'Null' else 'Null',
+                            'Subject Pos': subj_info['upos'] if subj_info['subj_position'] != 'Null' else 'Null',
+                            'Subject Det': check_subj(sentence_json, subj_info['subj_position'], 'det') if subj_info['subj_position'] != 'Null' else 'Null',
+                            'Que énonciatif': check_que_enonciatif(sentence_json),
+                            'Left context': first_part,
+                            'pivot': pivot['FORM'],
+                            'Right context': second_part,                                           
                         }
                         data.append(entry)
-                    excel_file_name = f"new_files/{conll_file.split('.conllu')[0]}.xlsx"
-                    sheet_name = f"{request['request_type']}_{subject_position}"
-                    extractions.generate_excel_file(data, sheet_name, excel_file_name)
+
+            excel_file_name = f"new_files/{conll_file.split('.conllu')[0]}.xlsx"
+            sheet_name = "MAT"
+            extractions.generate_excel_file(data, sheet_name, excel_file_name)
+                    
 
 
-        
-       
 
 
-
+                        
+                        
+                    
 
 

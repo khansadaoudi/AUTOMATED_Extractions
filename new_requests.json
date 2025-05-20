@@ -1,16 +1,16 @@
 {   
     "patterns": [
         {
-            "request_type": "MAT-PRO-REF PROpreV",
-            "request_pattern": "pattern { X -[root]-> Y;\nY -[nsubj]-> Z;\nZ[upos=PRON];\nY>>Z}"
+            "pivot": "AUX1",
+            "request_pattern": "pattern { X -[root]-> R;R-[aux|aux:pass|cop]->AUX1;R-[aux|aux:pass|cop]->AUX2;AUX1<<AUX2}"
         },
         {
-            "request_type": "MAT-PRO-REF PROpostV",
-            "request_pattern": "pattern { X -[root]-> Y;\nY -[nsubj]-> Z;\nZ[upos=PRON];Y<<Z}"
+            "pivot": "AUX1",
+            "request_pattern": "pattern { X -[root]-> R;R-[aux|aux:pass|cop]->AUX1;}without{R-[aux|aux:pass|cop]->AUX2}"
         },
         {
-            "request_type": "MAT-pro-null",
-            "request_pattern": "pattern { X -[root]-> Y}\nwithout{Y -[expl]-> Z}\nwithout{Y -[nsubj]-> S}"
+            "pivot": "R",
+            "request_pattern": "pattern { X -[root]-> R;R[upos=VERB]}without {R -[aux|aux:pass|cop]-> AUX1}"
         }
     ] 
 }

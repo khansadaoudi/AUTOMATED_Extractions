@@ -34,7 +34,7 @@ def get_extraction(request, corpus):
 
 def get_subj(sentence_json, root_position):
 
-    pattern = "pattern { X -[root]-> Y;\nY -[nsubj|expl]-> Z}"
+    pattern = "pattern { X -[root]-> Y;\nY -[nsubj]-> Z}"
 
     pattern = Request(pattern)
     sentence_conll = sentenceJsonToConll(sentence_json)
@@ -44,10 +44,11 @@ def get_subj(sentence_json, root_position):
     if occurences:
         node_id = occurences[0]['matching']['nodes']['Z']
         token = sentence_json['treeJson']['nodesJson'][node_id]
+        
         subj_info = {
             'subj_position': token['ID'],
             'form': token['FORM'],
-            'position': 'preV' if token['ID'] < root_position else 'postV',
+            'position': 'preV' if int(token['ID']) < int(root_position) else 'postV',
             'upos': token['UPOS'],
         }
         return subj_info
@@ -66,22 +67,28 @@ def check_que_enonciatif(sentence_json):
     return 'Y' if len(occurences) > 0 else 'N'
 
 def get_dep(sentence_json, gov):
+
+    list_deps = []
     for token in sentence_json['treeJson']['nodesJson'].values():
         if str(token['HEAD']) == str(gov):
-            return token
-    return None
+            list_deps.append(token)
+    
+    return list_deps
 
 def check_subj(sentence_json, subject_position, deprel):
     for token in sentence_json['treeJson']['nodesJson'].values():
-        if str(token['ID']) == str(subject_position):
+        dep = get_dep(sentence_json, subject_position)
+        if token['ID'] == subject_position:
             if deprel == 'det':
-                dep = get_dep(sentence_json, subject_position)
-                if dep is None:
-                    return 'N'
-                else:
-                    return 'Y' if dep['UPOS'] == 'DET' else 'N'
+                for d in dep:
+                    if d['DEPREL'] == deprel and d['UPOS'] == 'DET':
+                        return 'Y'
+                return 'N'
             else:
-                return 'Y' if token['DEPREL'] == deprel else 'N'
+                for d in dep:
+                    if d['DEPREL'] == deprel:
+                        return 'Y'
+                return 'N'
                 
 
 

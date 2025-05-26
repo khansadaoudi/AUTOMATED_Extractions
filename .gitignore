@@ -5,6 +5,6 @@ __pycache__/
 
 *.~lock*
 *.xlsx
-
+*.docx
 Files/
 new_files/

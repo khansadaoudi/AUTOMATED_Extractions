@@ -10,7 +10,7 @@
         }, 
         {
             "request_type": "1 conjunct, verbs",
-            "request_pattern": "pattern { X -[root]-> R;R[upos=VERB];R-[conj]->CONJ1;CONJ1[upos=VERB]}without {R -[aux|aux:pass|cop]-> AUX;R-[conj]->CONJ3;CONJ3[upos=VERB];R-[conj]->CONJ2;CONJ2[upos=VERB];}"
+            "request_pattern": "pattern { X -[root]-> R;R[upos=VERB];R-[conj]->CONJ1;CONJ1[upos=VERB]}without {R -[aux|aux:pass|cop]-> AUX;R-[conj]->CONJ2;CONJ2[upos=VERB];}"
         }, 
         {
             "request_type": "2 conjuncts, verb and aux",

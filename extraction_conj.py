@@ -32,15 +32,17 @@ def check_if_has_subject(match_nodes, sentence_json):
     
     for node, position in match_nodes.items():
         subj_exist = 'N'
+        subject = {}
         if node != 'X' and node != 'R': 
             deps = get_new_extractions.get_dep(sentence_json, position)
             for dep in deps:
                 if dep['DEPREL'] == 'nsubj':
                     subj_exist = 'Y'
+                    subject = dep
                     break
             
 
-    return subj_exist
+    return subj_exist, subject
             
             
 

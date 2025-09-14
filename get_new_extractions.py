@@ -89,8 +89,15 @@ def check_subj(sentence_json, subject_position, deprel):
                     if d['DEPREL'] == deprel:
                         return 'Y'
                 return 'N'
-                
 
+def get_mark(sentence_json):
+    for token in sentence_json['treeJson']['nodesJson'].values():
+        if token['HEAD'] == '0': 
+            children = get_dep(sentence_json, token['ID'])
+            for child in children:
+                if child['DEPREL'] == 'mark':
+                    return child['FORM']
+    return None
 
 if __name__ == "__main__":
 
@@ -131,7 +138,11 @@ if __name__ == "__main__":
                             'Subject position': subj_info['position'] if subj_info['subj_position'] != 'Null' else 'Null',
                             'Subject with nmod': check_subj(sentence_json, subj_info['subj_position'], 'nmod') if subj_info['subj_position'] != 'Null' else 'Null',
                             'Subject with relative': check_subj(sentence_json, subj_info['subj_position'], 'acl:relc') if subj_info['subj_position'] != 'Null' else 'Null',
+                            'mark': get_mark(sentence_json),
                             'Subject Pos': subj_info['upos'] if subj_info['subj_position'] != 'Null' else 'Null',
+                            'Subject PronType': subj_info['FEATS']['PronType'] if 'FEATS' in subj_info and 'PronType' in subj_info['FEATS'] else 'Null',
+                            'Subject Number': subj_info['FEATS']['Number'] if 'FEATS' in subj_info and 'Number' in subj_info['FEATS'] else 'Null',
+                            'Subject Person': subj_info['FEATS']['Person'] if 'FEATS' in subj_info and 'Person' in subj_info['FEATS'] else 'Null',
                             'Subject Det': check_subj(sentence_json, subj_info['subj_position'], 'det') if subj_info['subj_position'] != 'Null' else 'Null',
                             'Que énonciatif': check_que_enonciatif(sentence_json),
                             'Left context': first_part,
@@ -140,7 +151,7 @@ if __name__ == "__main__":
                         }
                         data.append(entry)
 
-            excel_file_name = f"new_files/{conll_file.split('.conllu')[0]}.xlsx"
+            excel_file_name = f"Corag_files/{conll_file.split('.conllu')[0]}.xlsx"
             sheet_name = "MAT"
             extractions.generate_excel_file(data, sheet_name, excel_file_name)
                     

@@ -11,6 +11,7 @@ def get_object(sentence_json, position_id):
 
 def get_part_info(sentence_json):
 
+    data = []
     for token in sentence_json['treeJson']['nodesJson'].values():
         if 'VerbForm' in token['FEATS'].keys() and token['FEATS']['VerbForm'] == 'Part':
             subject = get_nsubj(sentence_json, token['ID'])
@@ -40,7 +41,9 @@ def get_part_info(sentence_json):
                 'context_droite': second_part,
 
             }
-            return part_info
+            data.append(part_info)
+    return data
+            
         
     
 
@@ -58,7 +61,7 @@ if __name__ == "__main__":
             for sentence_json in sentences_json:
                 part_info = get_part_info(sentence_json)
                 if part_info:
-                    data.append(part_info)
+                    data.extend(part_info)
             if data:
                 generate_excel_file(data, conll_file.replace('.conllu', ''), excel_file_name)
                 

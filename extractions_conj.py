@@ -1,7 +1,7 @@
 import json
 import os
 
-import get_new_extractions, extractions
+import extractions_subj, extractions
 
 import grewpy
 from conllup.conllup import sentenceJsonToConll
@@ -34,7 +34,7 @@ def check_if_has_subject(match_nodes, sentence_json):
         subj_exist = 'N'
         subject = {}
         if node != 'X' and node != 'R': 
-            deps = get_new_extractions.get_dep(sentence_json, position)
+            deps = extractions_subj.get_dep(sentence_json, position)
             for dep in deps:
                 if dep['DEPREL'] == 'nsubj':
                     subj_exist = 'Y'
@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
             file_path = os.path.join(dir_path, conll_file)
             corpus = Corpus(file_path)
-            sentences_json = get_new_extractions.load_sentences_json(os.path.join(dir_path, conll_file))
+            sentences_json = extractions_subj.load_sentences_json(os.path.join(dir_path, conll_file))
 
             data = []
             for request in requests:

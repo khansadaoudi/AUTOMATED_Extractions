@@ -7,7 +7,7 @@ from grewpy import Request, Corpus
 import grewpy
 
 from extractions import get_sentences_part, load_corpus, generate_excel_file
-from get_new_extractions import load_sentences_json, get_dep
+from extractions_subj import load_sentences_json, get_dep
 
 
 def extract_pivot(sentence_json, patterns):

@@ -129,6 +129,8 @@ def get_conj(sentence_json, pivot):
             return get_gov(sentence_json, gov['ID'])['DEPREL']
         else: 
             'Null'
+    else: 
+       'Null'        
     
 def get_enonciatif(sentence_json, pivot_id, pivot_upos):
     # verbatim query on a specified sentence. Then filter the result by pivot_id and extract data

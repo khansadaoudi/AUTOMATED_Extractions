@@ -39,3 +39,40 @@ Install dependencies with:
 ```
 pip install -r requirements.txt
 ```
+
+## Notes
+
+Grewpy is not supported on Windows. If using Windows we need WSL. In this case, the following prerequisites are added:
+
+1. WSL
+2. Ocam
+3. Python venv
+
+E.g. after WSL installation::
+
+
+    git clone https://github.com/khansadaoudi/AUTOMATED_Extractions.git
+    cd AUTOMATED_Extractions
+    mkdir input
+    mkdir output
+    echo ".venv/" >> .gitignore
+    echo "input/" >> .gitignore
+    echo "output/" >> .gitignore
+    python3 -m venv .venv
+    source .venv/bin/activate
+    sudo apt-get install opam wget m4 unzip librsvg2-bin curl bubblewrap build-essential pkg-config curl ca-certificates
+    opam init
+    (yes to all)
+    opam switch create 5.2.1
+    eval $(opam env)
+    ocamlc -v
+    (you should see 5.2.1)
+    opam remote add grew "https://opam.grew.fr"
+    opam install grew
+    opam install grewpy_backend
+    python  -m pip install -r requirements.txt
+    python -m pip install grewpy
+
+Basic usage:: 
+    python extractions_finite_w_aux.py  -i input -o output
+   

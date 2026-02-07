@@ -13,3 +13,6 @@ corag_new_files/
 new_extractions/
 sub_extractions/
 Files/
+.venv/
+input/
+output/

@@ -77,6 +77,11 @@ def generate_excel_file(results, pattern_name, file_path):
     df.to_excel(writer, sheet_name=pattern_name, index=False)
     writer.close()
 
+def generate_csv_file(results, file_path):
+    df = pd.DataFrame(results)
+    df.to_csv(file_path, index=False)
+    
+
 if __name__ == "__main__":
 
     grewpy.set_config("ud")

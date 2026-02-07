@@ -70,9 +70,17 @@ E.g. after WSL installation::
     opam remote add grew "https://opam.grew.fr"
     opam install grew
     opam install grewpy_backend
-    python  -m pip install -r requirements.txt
+    python -m pip install -r requirements.txt
     python -m pip install grewpy
 
 Basic usage:: 
-    python extractions_finite_w_aux.py  -i input -o output
-   
+
+    extractions_finite_rev01.py [-h] [-i INPUT_DIR] [-o OUTPUT_DIR] [-t {excel,csv}]
+
+    Process files from input directory.
+
+    optons:
+         -h, --help      show this help message and exit
+         -i INPUT_DIR    Path to input directory. Default: input
+         -o OUTPUT_DIR   Path to output directory. Default: output
+         -t {excel,csv}  Output type excel/csv. Default: excel

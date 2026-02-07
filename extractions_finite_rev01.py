@@ -16,12 +16,89 @@ def get_gov(sentence_json, dep):
             return token
     return 'Null'
 
-def get_coordination_conj(sentence_json, pivot_id, pivot_upos):
-
+def get_coordination_conj_form(sentence_json, pivot_id, pivot_upos):
+    # verbatim query on a specified sentence. Then filter the result by pivot_id and extract data
     if(pivot_upos == 'VERB'): pattern=f"pattern {{PV[upos=VERB]; PV[VerbForm=Fin];PV -[cc]-> CC; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
     elif (pivot_upos == 'AUX'): pattern=f"pattern {{PV[upos=AUX]; HPV->PV;HPV -[cc]-> CC; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
     else: return 'Null'
-#    print(pattern)
+
+    pattern = Request(pattern)
+    sentence_conll = sentenceJsonToConll(sentence_json)
+    corpus = Corpus(sentence_conll)
+    occurences = corpus.search(pattern)
+
+    if occurences:
+        for occ in occurences:
+            if occ['matching']['nodes']['PV'] == pivot_id:
+              return sentence_json['treeJson']['nodesJson'][occ['matching']['nodes']['CC'] ]['FORM'] 
+ 
+    return 'Null'    
+  
+def get_coordination_conj_id(sentence_json, pivot_id, pivot_upos):
+    # verbatim query on a specified sentence. Then filter the result by pivot_id and extract data
+    if(pivot_upos == 'VERB'): pattern=f"pattern {{ PV[upos=VERB]; PV[VerbForm=Fin]; PV -[cc]-> CC; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
+    elif (pivot_upos == 'AUX'): pattern=f"pattern {{ PV[upos=AUX]; PV[VerbForm=Fin]; HPV->PV; HPV -[cc]-> CC; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
+    else: return 'Null'
+
+    pattern = Request(pattern)
+    sentence_conll = sentenceJsonToConll(sentence_json)
+    corpus = Corpus(sentence_conll)
+    occurences = corpus.search(pattern)
+    
+    if occurences:
+        for occ in occurences:
+            if occ['matching']['nodes']['PV'] == pivot_id:
+             try:
+              return occ['matching']['nodes']['CC']
+             except: 
+              return' Null'
+ 
+    return 'Null'      
+
+
+def get_subj_pron_num(sentence_json, pivot_id, pivot_upos):
+    # verbatim query on a specified sentence. Then filter the result by pivot_id and extract data    
+    if(pivot_upos == 'VERB'): pattern=f"pattern {{ PV[upos=VERB]; PV[VerbForm=Fin]; PV -[nsubj]-> S; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
+    elif (pivot_upos == 'AUX'): pattern=f"pattern {{ PV[upos=AUX]; PV[VerbForm=Fin]; HPV->PV; HPV -[nsubj]-> S; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
+    else: return 'Null'
+
+    pattern = Request(pattern)
+    sentence_conll = sentenceJsonToConll(sentence_json)
+    corpus = Corpus(sentence_conll)
+    occurences = corpus.search(pattern)
+    
+    if occurences:
+        for occ in occurences:
+            if occ['matching']['nodes']['PV'] == pivot_id:
+             return sentence_json['treeJson']['nodesJson'][occ['matching']['nodes']['N'] ]['FORM'] 
+ 
+    return 'Null'      
+
+def get_subj_pron_gender(sentence_json, pivot_id, pivot_upos):
+    # verbatim query on a specified sentence. Then filter the result by pivot_id and extract data
+    if(pivot_upos == 'VERB'): pattern=f"pattern {{ PV[upos=VERB]; PV[VerbForm=Fin]; PV -[nsubj]-> S; S[Gender= G]; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
+    elif (pivot_upos == 'AUX'): pattern=f"pattern {{ PV[upos=AUX]; PV[VerbForm=Fin]; HPV->PV; HPV -[nsubj]-> S; S[Gender= G]; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
+    else: return 'Null'
+
+    pattern = Request(pattern)
+    sentence_conll = sentenceJsonToConll(sentence_json)
+    corpus = Corpus(sentence_conll)
+    occurences = corpus.search(pattern)
+    
+    if occurences:
+        for occ in occurences:
+            if occ['matching']['nodes']['PV'] == pivot_id:
+             return sentence_json['treeJson']['nodesJson'][occ['matching']['nodes']['G'] ]['FORM'] 
+ 
+    return 'Null'      
+
+
+def get_subj_pron_person(sentence_json, pivot_id, pivot_upos):
+    # verbatim query on a specified sentence. Then filter the result by pivot_id and extract data
+    if(pivot_upos == 'VERB'): pattern=f"pattern {{ PV[upos=VERB]; PV[VerbForm=Fin]; PV -[nsubj]-> S; S[PronType=P]; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
+    elif (pivot_upos == 'AUX'): pattern=f"pattern {{ PV[upos=AUX]; PV[VerbForm=Fin]; HPV->PV; HPV -[nsubj]-> S; S[PronType= P]; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
+    else: return 'Null'
+
     pattern = Request(pattern)
     sentence_conll = sentenceJsonToConll(sentence_json)
     corpus = Corpus(sentence_conll)
@@ -31,65 +108,6 @@ def get_coordination_conj(sentence_json, pivot_id, pivot_upos):
     if occurences:
         for occ in occurences:
             if occ['matching']['nodes']['PV'] == pivot_id:
-             return sentence_json['treeJson']['nodesJson'][occ['matching']['nodes']['CC'] ]['FORM'] 
- 
-    return 'Null'      
- 
-
-def get_subj_pron_num(sentence_json, pivot_id, pivot_upos):
-
-    if(pivot_upos == 'VERB'): pattern="pattern { PV[upos=VERB]; PV[VerbForm=Fin]; PV -[nsubj]-> S; S[Number=N] }"
-    elif (pivot_upos == 'AUX'): pattern="pattern { PV[upos=AUX]; PV[VerbForm=Fin]; HPV->PV; HPV -[nsubj]-> S; S[Number=N]}"
-    else: return 'Null'
-
-    pattern = Request(pattern)
-    sentence_conll = sentenceJsonToConll(sentence_json)
-    corpus = Corpus(sentence_conll)
-    occurences = corpus.search(pattern)
-    #print(sentence_json['metaJson']['sent_id'])
-    
-    if occurences:
-        for occ in occurences:
-            if(occ['sent_id'] == sentence_json['metaJson']['sent_id'] ) and occ['matching']['nodes']['PV'] == pivot_id:
-             return sentence_json['treeJson']['nodesJson'][occ['matching']['nodes']['N'] ]['FORM'] 
- 
-    return 'Null'      
-
-def get_subj_pron_gender(sentence_json, pivot_id, pivot_upos):
-
-    if(pivot_upos == 'VERB'): pattern="pattern { PV[upos=VERB]; PV[VerbForm=Fin]; PV -[nsubj]-> S; S[Gender= G] } "
-    elif (pivot_upos == 'AUX'): pattern="pattern { PV[upos=AUX]; PV[VerbForm=Fin]; HPV->PV; HPV -[nsubj]-> S; S[Gender= G]  }"
-    else: return 'Null'
-
-    pattern = Request(pattern)
-    sentence_conll = sentenceJsonToConll(sentence_json)
-    corpus = Corpus(sentence_conll)
-    occurences = corpus.search(pattern)
-    #print(sentence_json['metaJson']['sent_id'])
-    
-    if occurences:
-        for occ in occurences:
-            if(occ['sent_id'] == sentence_json['metaJson']['sent_id'] ) and occ['matching']['nodes']['PV'] == pivot_id:
-             return sentence_json['treeJson']['nodesJson'][occ['matching']['nodes']['G'] ]['FORM'] 
- 
-    return 'Null'      
-
-
-def get_subj_pron_person(sentence_json, pivot_id, pivot_upos):
-
-    if(pivot_upos == 'VERB'): pattern="pattern { PV[upos=VERB]; PV[VerbForm=Fin]; PV -[nsubj]-> S; S[PronType=P] }"
-    elif (pivot_upos == 'AUX'): pattern="pattern { PV[upos=AUX]; PV[VerbForm=Fin]; HPV->PV; HPV -[nsubj]-> S; S[PronType= P]   } "
-    else: return 'Null'
-
-    pattern = Request(pattern)
-    sentence_conll = sentenceJsonToConll(sentence_json)
-    corpus = Corpus(sentence_conll)
-    occurences = corpus.search(pattern)
-    #print(sentence_json['metaJson']['sent_id'])
-    
-    if occurences:
-        for occ in occurences:
-            if(occ['sent_id'] == sentence_json['metaJson']['sent_id'] ) and occ['matching']['nodes']['PV'] == pivot_id:
              return sentence_json['treeJson']['nodesJson'][occ['matching']['nodes']['P'] ]['FORM'] 
  
     return 'Null'      
@@ -113,55 +131,30 @@ def get_conj(sentence_json, pivot):
             'Null'
     
 def get_enonciatif(sentence_json, pivot_id, pivot_upos):
-
-    if(pivot_upos == 'VERB'): pattern="pattern {PV[upos=VERB] ; PV[VerbForm=Fin];PV -[discourse:enunc]-> E}"
-    elif (pivot_upos == 'AUX'): pattern="pattern {PV[upos=AUX]; HPV->PV;HPV -[discourse:enunc]-> E }"
+    # verbatim query on a specified sentence. Then filter the result by pivot_id and extract data
+    if(pivot_upos == 'VERB'): pattern=f"pattern {{PV[upos=VERB] ; PV[VerbForm=Fin];PV -[discourse:enunc]-> E; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
+    elif (pivot_upos == 'AUX'): pattern=f"pattern {{PV[upos=AUX]; HPV->PV;HPV -[discourse:enunc]-> E; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
     else: return 'Null'
 
     pattern = Request(pattern)
     sentence_conll = sentenceJsonToConll(sentence_json)
     corpus = Corpus(sentence_conll)
     occurences = corpus.search(pattern)
-    #print(sentence_json['metaJson']['sent_id'])
     
     if occurences:
         for occ in occurences:
-            if(occ['sent_id'] == sentence_json['metaJson']['sent_id'] ) and occ['matching']['nodes']['PV'] == pivot_id:
-            #  print(occ)
-            #  print(sentence_json['treeJson']['nodesJson'][occ['matching']['nodes']['E'] ]['FORM'])
+            if occ['matching']['nodes']['PV'] == pivot_id:
              return sentence_json['treeJson']['nodesJson'][occ['matching']['nodes']['E'] ]['FORM'] 
  
     return 'Null'      
  
 
 
-def get_coord_conjunction(sentence_json, pivot_id, pivot_upos):
-
-    if(pivot_upos == 'VERB'): pattern="pattern { PV[upos=VERB]; PV[VerbForm=Fin]; PV -[cc]-> CC }"
-    elif (pivot_upos == 'AUX'): pattern="pattern { PV[upos=AUX]; PV[VerbForm=Fin]; HPV->PV; HPV -[cc]-> CC }"
-    else: return 'Null'
-
-    pattern = Request(pattern)
-    sentence_conll = sentenceJsonToConll(sentence_json)
-    corpus = Corpus(sentence_conll)
-    occurences = corpus.search(pattern)
-    #print(sentence_json['metaJson']['sent_id'])
-    
-    if occurences:
-        for occ in occurences:
-#            print(occ)
-            if(occ['sent_id'] == sentence_json['metaJson']['sent_id'] ) and occ['matching']['nodes']['PV'] == pivot_id:
-             try:
-              return occ['matching']['nodes']['CC']
-             except: 
-              return' Null'
- 
-    return 'Null'      
 
 def get_subj_pron(sentence_json, pivot_id, pivot_upos):
-
-    if(pivot_upos == 'VERB'): pattern="pattern { PV[upos=VERB]; PV[VerbForm=Fin]; PV -[nsubj]-> S}"
-    elif (pivot_upos == 'AUX'): pattern="pattern { PV[upos=AUX]; PV[VerbForm=Fin]; HPV->PV; HPV -[nsubj]-> S}"
+    # verbatim query on a specified sentence. Then filter the result by pivot_id and extract data
+    if(pivot_upos == 'VERB'): pattern=f"pattern {{ PV[upos=VERB]; PV[VerbForm=Fin]; PV -[nsubj]-> S; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
+    elif (pivot_upos == 'AUX'): pattern=f"pattern {{ PV[upos=AUX]; PV[VerbForm=Fin]; HPV->PV; HPV -[nsubj]-> S; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
     else: return 'Null','Null','Null','Null'
 
     pattern = Request(pattern)
@@ -171,7 +164,7 @@ def get_subj_pron(sentence_json, pivot_id, pivot_upos):
 
     if occurences:
         for occ in occurences:
-            if(occ['sent_id'] == sentence_json['metaJson']['sent_id'] ) and occ['matching']['nodes']['PV'] == pivot_id:
+            if  occ['matching']['nodes']['PV'] == pivot_id:
              try:
               Pron  =  sentence_json['treeJson']['nodesJson'][occ
               ['matching']['nodes']['S'] ]['FEATS']['PronType']
@@ -189,20 +182,19 @@ def get_subj_pron(sentence_json, pivot_id, pivot_upos):
 
 
 def get_subj_position_prev(sentence_json, pivot_id, pivot_upos):
-
-    if(pivot_upos == 'VERB'): pattern="pattern {PV[upos=VERB]; PV[VerbForm=Fin]; PV-[nsubj]->S; S<<PV}"
-    elif (pivot_upos == 'AUX'): pattern="pattern {PV[upos=AUX]; PV[VerbForm=Fin]; HPV->PV; HPV-[nsubj]->S;S<<PV}"
+    # verbatim query on a specified sentence. Then filter the result by pivot_id and extract data
+    if(pivot_upos == 'VERB'): pattern=f"pattern {{PV[upos=VERB]; PV[VerbForm=Fin]; PV-[nsubj]->S; S<<PV; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
+    elif (pivot_upos == 'AUX'): pattern=f"pattern {{PV[upos=AUX]; PV[VerbForm=Fin]; HPV->PV; HPV-[nsubj]->S;S<<PV; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
     else: return 'Null'
 
     pattern = Request(pattern)
     sentence_conll = sentenceJsonToConll(sentence_json)
     corpus = Corpus(sentence_conll)
     occurences = corpus.search(pattern)
-    #print(sentence_json['metaJson']['sent_id'])
-    
+
     if occurences:
         for occ in occurences:
-            if(occ['sent_id'] == sentence_json['metaJson']['sent_id'] ) and occ['matching']['nodes']['PV'] == pivot_id:
+            if occ['matching']['nodes']['PV'] == pivot_id:
              try:
               #print(occ)
               return occ['matching']['nodes']['S']
@@ -212,22 +204,20 @@ def get_subj_position_prev(sentence_json, pivot_id, pivot_upos):
     return 'Null'      
 
 def get_subj_position_postv(sentence_json, pivot_id, pivot_upos):
-
-    if(pivot_upos == 'VERB'): pattern="pattern {PV[upos=VERB]; PV[VerbForm=Fin]; PV-[nsubj]->S; S>>PV}"
-    elif (pivot_upos == 'AUX'): pattern="pattern {PV[upos=AUX]; PV[VerbForm=Fin]; HPV->PV; HPV-[nsubj]->S;S>>PV}"
+    # verbatim query on a specified sentence. Then filter the result by pivot_id and extract data
+    if(pivot_upos == 'VERB'): pattern=f"pattern {{PV[upos=VERB]; PV[VerbForm=Fin]; PV-[nsubj]->S; S>>PV; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
+    elif (pivot_upos == 'AUX'): pattern=f"pattern {{PV[upos=AUX]; PV[VerbForm=Fin]; HPV->PV; HPV-[nsubj]->S;S>>PV; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
     else: return 'Null'
 
     pattern = Request(pattern)
     sentence_conll = sentenceJsonToConll(sentence_json)
     corpus = Corpus(sentence_conll)
     occurences = corpus.search(pattern)
-    #print(sentence_json['metaJson']['sent_id'])
     
     if occurences:
         for occ in occurences:
-            if(occ['sent_id'] == sentence_json['metaJson']['sent_id'] ) and occ['matching']['nodes']['PV'] == pivot_id:
+            if occ['matching']['nodes']['PV'] == pivot_id:
              try:
-              #print(occ)
               return occ['matching']['nodes']['S']
              except: 
               return' Null'
@@ -236,23 +226,20 @@ def get_subj_position_postv(sentence_json, pivot_id, pivot_upos):
 
 
 def get_subordinate_conj_single(sentence_json, pivot_id, pivot_upos):
-
-    if(pivot_upos == 'VERB'): pattern="pattern { PV[upos=VERB] ; PV[VerbForm=Fin];PV -[mark]-> M }"
-    elif (pivot_upos == 'AUX'): pattern="pattern { PV[upos=AUX]; HPV->PV;HPV -[mark]-> M }"
+    # verbatim query on a specified sentence. Then filter the result by pivot_id and extract data
+    if(pivot_upos == 'VERB'): pattern=f"pattern {{ PV[upos=VERB] ; PV[VerbForm=Fin];PV -[mark]-> M; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
+    elif (pivot_upos == 'AUX'): pattern=f"pattern {{ PV[upos=AUX]; HPV->PV;HPV -[mark]-> M; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
     else: return 'Null'
 
     pattern = Request(pattern)
     sentence_conll = sentenceJsonToConll(sentence_json)
     corpus = Corpus(sentence_conll)
     occurences = corpus.search(pattern)
-    #print(sentence_json)
-    #print(json.dumps(sentence_json, indent=4))
-    #sys.exit()
+
     if occurences:
          for occ in occurences:
-            if(occ['sent_id'] == sentence_json['metaJson']['sent_id'] ) and occ['matching']['nodes']['PV'] == pivot_id:
+            if occ['matching']['nodes']['PV'] == pivot_id:
              try:
-              #print(occ)
               form= sentence_json['treeJson']['nodesJson'][occ['matching']['nodes']['M']]['FORM']
               return form
              except: 
@@ -261,23 +248,20 @@ def get_subordinate_conj_single(sentence_json, pivot_id, pivot_upos):
     return 'Null'  
 
 def get_subordinate_conj_multi(sentence_json, pivot_id, pivot_upos):
-
-    if(pivot_upos == 'VERB'): pattern="pattern { PV[upos=VERB];PV[VerbForm=Fin]; PV -[mark]-> M1; PV-[mark]->M2 }"
-    elif (pivot_upos == 'AUX'): pattern="pattern { PV[upos=AUX]; V->PV; V -[mark]-> M1; V-[mark]->M2}"
+    # verbatim query on a specified sentence. Then filter the result by pivot_id and extract data
+    if(pivot_upos == 'VERB'): pattern=f"pattern {{ PV[upos=VERB];PV[VerbForm=Fin]; PV -[mark]-> M1; PV-[mark]->M2; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
+    elif (pivot_upos == 'AUX'): pattern=f"pattern {{ PV[upos=AUX]; V->PV; V -[mark]-> M1; V-[mark]->M2; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
     else: return 'Null'
 
     pattern = Request(pattern)
     sentence_conll = sentenceJsonToConll(sentence_json)
     corpus = Corpus(sentence_conll)
     occurences = corpus.search(pattern)
-    #print(sentence_json)
-    #print(json.dumps(sentence_json, indent=4))
-    #sys.exit()
+
     if occurences:
          for occ in occurences:
-            if(occ['sent_id'] == sentence_json['metaJson']['sent_id'] ) and occ['matching']['nodes']['PV'] == pivot_id:
+            if occ['matching']['nodes']['PV'] == pivot_id:
              try:
-              #print(occ)
               form= sentence_json['treeJson']['nodesJson'][occ['matching']['nodes']['M1']]['FORM']+ "|" + \
                     sentence_json['treeJson']['nodesJson'][occ['matching']['nodes']['M2']]['FORM']
               return form
@@ -289,23 +273,20 @@ def get_subordinate_conj_multi(sentence_json, pivot_id, pivot_upos):
 
 
 def get_subj_determiner_single(sentence_json, pivot_id, pivot_upos):
-
-    if(pivot_upos == 'VERB'): pattern="pattern { PV[upos=VERB]; PV[VerbForm=Fin]; PV -[nsubj]-> S ; S-[det]->D}"
-    elif (pivot_upos == 'AUX'): pattern="pattern { PV[upos=AUX]; PV[VerbForm=Fin]; HPV->PV; HPV -[nsubj]-> S; S-[det]->D }"
+    # verbatim query on a specified sentence. Then filter the result by pivot_id and extract data
+    if(pivot_upos == 'VERB'): pattern=f"pattern {{ PV[upos=VERB]; PV[VerbForm=Fin]; PV -[nsubj]-> S ; S-[det]->D; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
+    elif (pivot_upos == 'AUX'): pattern=f"pattern {{ PV[upos=AUX]; PV[VerbForm=Fin]; HPV->PV; HPV -[nsubj]-> S; S-[det]->D; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
     else: return 'Null'
 
     pattern = Request(pattern)
     sentence_conll = sentenceJsonToConll(sentence_json)
     corpus = Corpus(sentence_conll)
     occurences = corpus.search(pattern)
-    #print(sentence_json)
-    #print(json.dumps(sentence_json, indent=4))
-    #sys.exit()
+
     if occurences:
          for occ in occurences:
-            if(occ['sent_id'] == sentence_json['metaJson']['sent_id'] ) and occ['matching']['nodes']['PV'] == pivot_id:
+            if  occ['matching']['nodes']['PV'] == pivot_id:
              try:
-              #print(occ)
               form= sentence_json['treeJson']['nodesJson'][occ['matching']['nodes']['D']]['FORM']
               return form
              except: 
@@ -314,21 +295,19 @@ def get_subj_determiner_single(sentence_json, pivot_id, pivot_upos):
     return 'Null'  
 
 def get_subj_determiner_multi(sentence_json, pivot_id, pivot_upos):
-
-    if(pivot_upos == 'VERB'): pattern="pattern { PV[upos=VERB]; PV[VerbForm=Fin]; PV -[nsubj]-> S ; S-[det]->D1; S-[det]->D2 }"
-    elif (pivot_upos == 'AUX'): pattern="pattern { PV[upos=AUX]; PV[VerbForm=Fin]; HPV->PV; HPV -[nsubj]-> S; S-[det]->D1; S-[det]->D2 }"
+    # verbatim query on a specified sentence. Then filter the result by pivot_id and extract data
+    if(pivot_upos == 'VERB'): pattern=f"pattern {{ PV[upos=VERB]; PV[VerbForm=Fin]; PV -[nsubj]-> S ; S-[det]->D1; S-[det]->D2; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
+    elif (pivot_upos == 'AUX'): pattern=f"pattern {{ PV[upos=AUX]; PV[VerbForm=Fin]; HPV->PV; HPV -[nsubj]-> S; S-[det]->D1; S-[det]->D2; meta.sent_id = \"{sentence_json['metaJson']['sent_id']}\";}}"
     else: return 'Null'
 
     pattern = Request(pattern)
     sentence_conll = sentenceJsonToConll(sentence_json)
     corpus = Corpus(sentence_conll)
     occurences = corpus.search(pattern)
-    #print(sentence_json)
-    #print(json.dumps(sentence_json, indent=4))
-    #sys.exit()
+
     if occurences:
          for occ in occurences:
-            if(occ['sent_id'] == sentence_json['metaJson']['sent_id'] ) and occ['matching']['nodes']['PV'] == pivot_id:
+            if occ['matching']['nodes']['PV'] == pivot_id:
              try:
               #print(occ)
               form= sentence_json['treeJson']['nodesJson'][occ['matching']['nodes']['D1']]['FORM']+ "|" + \
@@ -344,9 +323,9 @@ def get_subj_determiner_multi(sentence_json, pivot_id, pivot_upos):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process files from input directory.")
-    parser.add_argument("-i",  type=Path,dest="input_dir", default=Path("input"), help="Path to input directory")
-    parser.add_argument("-o",  type=Path,dest="output_dir", default=Path("output"), help="Path to output directory")
-    parser.add_argument("-t",  type=str, dest="output_type", choices=["excel", "csv"], default="excel", help="Output type excel/csv")
+    parser.add_argument("-i",  type=Path,dest="input_dir", default=Path("input"), help="Path to input directory. Default: input")
+    parser.add_argument("-o",  type=Path,dest="output_dir", default=Path("output"), help="Path to output directory. Default: output")
+    parser.add_argument("-t",  type=str, dest="output_type", choices=["excel", "csv"], default="excel", help="Output type excel/csv. Default: excel")
 
     args = parser.parse_args()
 
@@ -412,8 +391,8 @@ if __name__ == "__main__":
                         entry['Subordinating conjunction'] = get_subordinate_conj_single(sentence,pivot['ID'],pivot['UPOS'])
                         entry['Subordinating conjunction multimark'] = get_subordinate_conj_multi(sentence,pivot['ID'],pivot['UPOS'])
                         # Coordinating conjunction:
-                        entry['Coordinating Conjunction Form'] = get_coordination_conj(sentence, pivot['ID'],pivot['UPOS']),
-                        entry['Coordinating conjunction ID'] = get_coord_conjunction(sentence,pivot['ID'],pivot['UPOS'])
+                        entry['Coordinating Conjunction ID'] = get_coordination_conj_id(sentence,pivot['ID'],pivot['UPOS'])
+                        entry['Coordinating Conjunction Form'] = get_coordination_conj_form(sentence, pivot['ID'],pivot['UPOS'])
                         # Function of conj:
                         entry['Function of conj of conj']='Null'
                         entry['Function of conj']='Null'

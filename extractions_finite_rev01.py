@@ -1,20 +1,18 @@
+#System modules
 import os
 import sys
 import json 
-
-from extractions_subj import load_sentences_json, get_dep
-from extractions import get_sentences_part, generate_excel_file, generate_csv_file
 import argparse
 from pathlib import Path
+
+#Parsing modules
 from conllup.conllup import sentenceJsonToConll
 from grewpy import Request, Corpus
 
-def get_gov(sentence_json, dep):
-    for token in sentence_json['treeJson']['nodesJson'].values():
-        #print(token)
-        if str(token['ID']) == str(dep):
-            return token
-    return 'Null'
+#Our utilities
+import extraction_utilities
+
+
 
 def get_coordination_conj_form(sentence_json, pivot_id, pivot_upos):
     # verbatim query on a specified sentence. Then filter the result by pivot_id and extract data
@@ -114,7 +112,7 @@ def get_subj_pron_person(sentence_json, pivot_id, pivot_upos):
 
         
 def get_subj(sentence_json, pivot):
-    list_deps = get_dep(sentence_json, pivot)
+    list_deps = extraction_utilities.get_dep(sentence_json, pivot)
     for token in list_deps:
         if token['DEPREL'] == 'nsubj':
             return {
@@ -124,9 +122,9 @@ def get_subj(sentence_json, pivot):
 
 def get_conj(sentence_json, pivot):
     if pivot['DEPREL'] == 'conj':
-        gov = get_gov(sentence_json, pivot['ID'])
+        gov = extraction_utilities.get_gov(sentence_json, pivot['ID'])
         if gov != 'Null' and gov['DEPREL'] == 'conj':
-            return get_gov(sentence_json, gov['ID'])['DEPREL']
+            return extraction_utilities.get_gov(sentence_json, gov['ID'])['DEPREL']
         else: 
             'Null'
     else: 
@@ -324,45 +322,63 @@ def get_subj_determiner_multi(sentence_json, pivot_id, pivot_upos):
 
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser(description="Process files from input directory.")
     parser.add_argument("-i",  type=Path,dest="input_dir", default=Path("input"), help="Path to input directory. Default: input")
     parser.add_argument("-o",  type=Path,dest="output_dir", default=Path("output"), help="Path to output directory. Default: output")
     parser.add_argument("-t",  type=str, dest="output_type", choices=["excel", "csv"], default="excel", help="Output type excel/csv. Default: excel")
 
     args = parser.parse_args()
+    # print(args)
+    # sys.exit(0)
 
     # create output directory if it doesn't exist
     args.output_dir.mkdir(parents=True, exist_ok=True)
     
     dir_path = args.input_dir
-    print(f"processing {dir_path}")
+    print(f"Processing {dir_path}")
+
     for conll_file in os.listdir(dir_path):
-        
+
+        print(f"Processing {conll_file}")
         if conll_file.lower().endswith(".conllu"):
+            # create full path
             conll_file = os.path.join(dir_path, conll_file)
-            sentences_json = load_sentences_json(conll_file)
-            print(f"processing:::: {conll_file}/{len(sentences_json)}")
-            data = []
+            print(f"Processing {conll_file}")
+
+            # load all sentences 
+            sentences_json = extraction_utilities.load_sentences_json(conll_file)
+            print(f"Processing:::: {conll_file}/{len(sentences_json)}")
+
+            data = [] 
             i=0
+            # go through all sentences one by one 
             for sent_id, sentence in sentences_json.items():
                 i=i+1
-                print(f"sentence {i}/{len(sentences_json)}")
-                for token in sentence['treeJson']['nodesJson'].values():
-                    if 'VerbForm' in token['FEATS'].keys() and token['FEATS']['VerbForm'] == 'Fin': 
-                        pivot = token 
-                        first_part, second_part = get_sentences_part(sentence, int(pivot['ID']), 0)
+                print(f"Sentence {i}/{len(sentences_json)}")
+
+                # go through all tokens in this sentence one by one 
+                for pivot in sentence['treeJson']['nodesJson'].values():
+
+                    if 'VerbForm' in pivot['FEATS'].keys() and pivot['FEATS']['VerbForm'] == 'Fin':
+
+                        first_part, second_part = extraction_utilities.get_sentences_part(sentence, int(pivot['ID']))
                         #Get governors
-                        gov = get_gov(sentence, pivot['HEAD'])
-                        if  gov =='Null':
-                           gov_of_gov={}
-                           gov_of_gov['DEPREL']='Null'
-                        else: 
-                           gov_of_gov = get_gov(sentence, gov['HEAD'])
-                           if  gov_of_gov =='Null':
+                        gov = extraction_utilities.get_gov(sentence, pivot['HEAD'])
+
+                        if gov != 'Null':
+                           gov_of_gov = extraction_utilities.get_gov(sentence, gov['HEAD'])
+                           if gov_of_gov !='Null':
+                              gov_of_gov_of_gov = extraction_utilities.get_gov(sentence, gov_of_gov['HEAD'])
+                           else:
                               gov_of_gov_of_gov={}
                               gov_of_gov_of_gov['DEPREL']='Null'
-                           else:
-                              gov_of_gov_of_gov = get_gov(sentence, gov_of_gov['HEAD'])
+                        else: 
+                           gov_of_gov={}
+                           gov_of_gov['DEPREL']='Null'
+                           gov_of_gov_of_gov={}
+                           gov_of_gov_of_gov['DEPREL']='Null'
+
                         # Get subject
                         subject = get_subj(sentence, pivot['ID'])['subject'] if get_subj(sentence, pivot['ID']) else 'Null'
 
@@ -416,9 +432,9 @@ if __name__ == "__main__":
             if(args.output_type=="excel"):  
                 excel_file_name = base_outfile_name+".xlsx"
                 sheet_name = 'extractions'
-                generate_excel_file(data, sheet_name, excel_file_name)
+                extraction_utilities.generate_excel_file(data, sheet_name, excel_file_name)
             else:
                 csv_file_name = base_outfile_name+".csv"
-                generate_csv_file(data, csv_file_name)
+                extraction_utilities.generate_csv_file(data, csv_file_name)
 
 
